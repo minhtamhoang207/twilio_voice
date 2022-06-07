@@ -28,6 +28,7 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         set{UserDefaults.standard.setValue(newValue, forKey: kCachedDeviceToken)}
     }
     var deviceTokenResponse:String?
+    let devicePushTokenVoIP = "DevicePushTokenVoIP"
     var callArgs: Dictionary<String, AnyObject> = [String: AnyObject]()
     
     var voipRegistry: PKPushRegistry

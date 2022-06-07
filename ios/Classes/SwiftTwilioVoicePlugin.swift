@@ -27,6 +27,7 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         get{UserDefaults.standard.data(forKey: kCachedDeviceToken)}
         set{UserDefaults.standard.setValue(newValue, forKey: kCachedDeviceToken)}
     }
+    var deviceTokenResponse:String?
     var callArgs: Dictionary<String, AnyObject> = [String: AnyObject]()
     
     var voipRegistry: PKPushRegistry
@@ -129,6 +130,11 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
             self.callTo = callTo
             self.identity = callFrom
             makeCall(to: callTo)
+        }
+        else if flutterCall.method == "get-device-token"
+        {
+            result(UserDefaults.standard.string(forKey: devicePushTokenVoIP) ?? "");
+            return;
         }
         else if flutterCall.method == "toggleMute"
         {
@@ -340,6 +346,9 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
         guard registrationRequired() || deviceToken != credentials.token else { return }
 
         let deviceToken = credentials.token
+
+        deviceTokenResponse = deviceToken.map { String(format: "%02x", $0) }.joined();
+        UserDefaults.standard.set(deviceTokenResponse, forKey: devicePushTokenVoIP)
         
         self.sendPhoneCallEvents(description: "LOG|pushRegistry:attempting to register with twilio", isError: false)
         if let token = accessToken {
@@ -435,6 +444,14 @@ public class SwiftTwilioVoicePlugin: NSObject, FlutterPlugin,  FlutterStreamHand
 //        self.incomingPushCompletionCallback = completion
         
         if (type == PKPushType.voIP) {
+
+            var updatedPayload : [AnyHashable : Any] = payload.dictionaryPayload
+            updatedPayload["twi_message_type"] = "twilio.voice.call"
+            updatedPayload["twi_bridge_token"] = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTSzU5MGU2NDQ1YTZmZjViZThkNmYyYmM5NTg2YWIyMzkwLTE2NTQyMzc1MTUiLCJpc3MiOiJTSzU5MGU2NDQ1YTZmZjViZThkNmYyYmM5NTg2YWIyMzkwIiwic3ViIjoiQUMyZWExNDY4M2JhZDcwNTRjZTkxYjY4MDc0M2JiM2Y4YyIsImV4cCI6MTY1NDI0MTExNSwiZ3JhbnRzIjp7ImlkZW50aXR5IjoiNCIsInZvaWNlIjp7ImluY29taW5nIjp7ImFsbG93Ijp0cnVlfSwib3V0Z29pbmciOnsiYXBwbGljYXRpb25fc2lkIjoiQVAyNzEyMTQ2NDMyNmEzZGI2NjFlNjdlZjFjMWNiZjc2ZiJ9fX19.5vvudXD5qUz6SDHMJMgWp_eI-zaWYYk-h9maWjZldjE"
+            updatedPayload["twi_call_sid"] = "CAd02a62601c6aedcfe9e2169690349394"
+            updatedPayload["twi_to"] = "group:324"
+            updatedPayload["twi_from"] = "Tra"
+
             TwilioVoiceSDK.handleNotification(payload.dictionaryPayload, delegate: self, delegateQueue: nil)
         }
         

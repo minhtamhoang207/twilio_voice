@@ -257,6 +257,11 @@ class Call {
         <String, dynamic>{}).then<bool>((bool? value) => value ?? false);
   }
 
+  /// Gets the device token
+  Future<String?> getDeviceToken() async {
+    return await _channel.invokeMethod<String?>('get-device-token', <String, dynamic>{}).then<String?>((String? value) => value);
+  }
+
   /// Gets the active call's SID. This will be null until the first Ringing event occurs
   Future<String?> getSid() {
     return _channel.invokeMethod<String?>('call-sid', <String, dynamic>{}).then<String?>((String? value) => value);
